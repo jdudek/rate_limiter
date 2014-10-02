@@ -13,6 +13,14 @@ class RateLimiterTest < MiniTest::Test
 
   def test_adds_rate_limit_headers
     get '/'
-    assert_equal "60", last_response.headers["X-RateLimit-Limit"]
+    assert_equal 59, last_response.headers["X-RateLimit-Limit"]
+  end
+
+  def test_decreases_rate_limit_after_request
+    get '/'
+    assert_equal 59, last_response.headers["X-RateLimit-Limit"]
+
+    get '/'
+    assert_equal 58, last_response.headers["X-RateLimit-Limit"]
   end
 end
