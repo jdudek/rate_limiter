@@ -14,7 +14,10 @@ module RateLimiter
     end
 
     def call(env)
-      limit, reset_at = store[client_key(env)] || [nil, nil]
+      key = client_key(env)
+      return app.call(env) if key.nil?
+
+      limit, reset_at = store[key] || [nil, nil]
 
       if reset_at && reset_at < Time.now
         limit, reset_at = nil, nil

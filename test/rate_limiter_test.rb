@@ -72,6 +72,13 @@ class RateLimiterTest < Minitest::Unit::TestCase
     assert_equal 58, last_response.headers["X-RateLimit-Limit"]
   end
 
+  def test_no_rate_limit_when_block_returns_nil
+    @app = RateLimiter::Middleware.new(empty_app) { |env| nil }
+
+    get '/', { "api_token" => "abc123" }
+    assert_nil last_response.headers["X-RateLimit-Limit"]
+  end
+
   def at_time(time, &block)
     Timecop.travel(Time.parse(time), &block)
   end
