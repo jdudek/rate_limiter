@@ -99,6 +99,7 @@ module RateLimiter
       self.remaining_limit -= 1
       headers["X-RateLimit-Limit"] = total_limit
       headers["X-RateLimit-Remaining"] = remaining_limit
+      headers["X-RateLimit-Reset"] = expires_at.to_i
       [status, headers, body]
     ensure
       store_data

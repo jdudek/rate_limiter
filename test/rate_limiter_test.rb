@@ -19,6 +19,7 @@ class RateLimiterTest < Minitest::Unit::TestCase
     get '/'
     assert_equal 60, last_response.headers["X-RateLimit-Limit"]
     assert_equal 59, last_response.headers["X-RateLimit-Remaining"]
+    assert last_response.headers["X-RateLimit-Reset"]
   end
 
   def test_decreases_rate_limit_after_request
@@ -41,11 +42,13 @@ class RateLimiterTest < Minitest::Unit::TestCase
     at_time "2:00" do
       10.times { get '/' }
       assert_equal 50, last_response.headers["X-RateLimit-Remaining"]
+      assert_equal Time.parse("3:00").to_i, last_response.headers["X-RateLimit-Reset"]
     end
 
     at_time "3:10" do
       get '/'
       assert_equal 59, last_response.headers["X-RateLimit-Remaining"]
+      assert_equal Time.parse("4:10").to_i, last_response.headers["X-RateLimit-Reset"]
     end
   end
 
