@@ -9,6 +9,7 @@ module RateLimiter
       @options = options.dup
       @options[:block] = block || DEFAULT_BLOCK
       @options[:store] ||= HashStore.new
+      @options[:limit] ||= 60
     end
 
     def call(env)
@@ -72,8 +73,12 @@ module RateLimiter
 
     attr_writer :remaining_limit
 
+    def total_limit
+      options[:limit]
+    end
+
     def reset_limit
-      self.remaining_limit = 60
+      self.remaining_limit = total_limit
       self.expires_at = Time.now + 3600
     end
 
@@ -92,7 +97,8 @@ module RateLimiter
     def call_app_with_limit
       status, headers, body = app.call(env)
       self.remaining_limit -= 1
-      headers["X-RateLimit-Limit"] = remaining_limit
+      headers["X-RateLimit-Limit"] = total_limit
+      headers["X-RateLimit-Remaining"] = remaining_limit
       [status, headers, body]
     ensure
       store_data
