@@ -3,8 +3,12 @@ require 'test_helper'
 class RateLimiterTest < Minitest::Unit::TestCase
   include Rack::Test::Methods
 
+  def teardown
+    @app = nil
+  end
+
   def app
-    RateLimiter::Middleware.new(empty_app)
+    @app ||= RateLimiter::Middleware.new(empty_app)
   end
 
   def empty_app
@@ -52,6 +56,19 @@ class RateLimiterTest < Minitest::Unit::TestCase
     assert_equal 59, last_response.headers["X-RateLimit-Limit"]
 
     get '/', {}, "REMOTE_ADDR" => "10.0.0.1"
+    assert_equal 58, last_response.headers["X-RateLimit-Limit"]
+  end
+
+  def test_custom_client_detection
+    @app = RateLimiter::Middleware.new(empty_app) { |env| Rack::Request.new(env).params["api_token"] }
+
+    get '/', { "api_token" => "abc123" }
+    assert_equal 59, last_response.headers["X-RateLimit-Limit"]
+
+    get '/', { "api_token" => "def456" }
+    assert_equal 59, last_response.headers["X-RateLimit-Limit"]
+
+    get '/', { "api_token" => "abc123" }
     assert_equal 58, last_response.headers["X-RateLimit-Limit"]
   end
 

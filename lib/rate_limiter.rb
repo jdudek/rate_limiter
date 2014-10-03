@@ -2,10 +2,14 @@ require "rate_limiter/version"
 
 module RateLimiter
   class Middleware
+    DEFAULT_BLOCK = lambda { |env| Rack::Request.new(env).ip }
+
     attr_reader :app, :store
 
-    def initialize(app)
+    def initialize(app, options = {}, &block)
       @app = app
+      @options = options
+      @block = block || DEFAULT_BLOCK
       @store = {}
     end
 
@@ -34,7 +38,7 @@ module RateLimiter
     end
 
     def client_key(env)
-      Rack::Request.new(env).ip
+      @block.call(env)
     end
   end
 end
