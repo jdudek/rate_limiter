@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class RateLimiterTest < Minitest::Unit::TestCase
+class RateLimiterTest < RateLimiterTestCase
   include Rack::Test::Methods
 
   def teardown
@@ -9,10 +9,6 @@ class RateLimiterTest < Minitest::Unit::TestCase
 
   def app
     @app ||= RateLimiter::Middleware.new(empty_app)
-  end
-
-  def empty_app
-    lambda { |env| [200, {}, "OK"] }
   end
 
   def test_adds_rate_limit_headers
@@ -42,13 +38,13 @@ class RateLimiterTest < Minitest::Unit::TestCase
     at_time "2:00" do
       10.times { get '/' }
       assert_equal "50", last_response.headers["X-RateLimit-Remaining"]
-      assert_equal Time.parse("3:00").to_i.to_s, last_response.headers["X-RateLimit-Reset"]
+      assert_equal timestamp_for("3:00"), last_response.headers["X-RateLimit-Reset"]
     end
 
     at_time "3:10" do
       get '/'
       assert_equal "59", last_response.headers["X-RateLimit-Remaining"]
-      assert_equal Time.parse("4:10").to_i.to_s, last_response.headers["X-RateLimit-Reset"]
+      assert_equal timestamp_for("4:10"), last_response.headers["X-RateLimit-Reset"]
     end
   end
 
@@ -91,9 +87,5 @@ class RateLimiterTest < Minitest::Unit::TestCase
     store.expects(:set)
 
     get '/', {}, "REMOTE_ADDR" => "10.0.0.1"
-  end
-
-  def at_time(time, &block)
-    Timecop.travel(Time.parse(time), &block)
   end
 end
