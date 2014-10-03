@@ -10,14 +10,14 @@ module RateLimiter
       @app = app
       @options = options
       @block = block || DEFAULT_BLOCK
-      @store = {}
+      @store = options[:store] || HashStore.new
     end
 
     def call(env)
       key = client_key(env)
       return app.call(env) if key.nil?
 
-      limit, reset_at = store[key] || [nil, nil]
+      limit, reset_at = store.get(key) || [nil, nil]
 
       if reset_at && reset_at < Time.now
         limit, reset_at = nil, nil
@@ -37,11 +37,25 @@ module RateLimiter
         [429, {}, ""]
       end
     ensure
-      store[client_key(env)] = [limit, reset_at]
+      store.set(key, [limit, reset_at]) if key
     end
 
     def client_key(env)
       @block.call(env)
+    end
+  end
+
+  class HashStore
+    def initialize
+      @hash = {}
+    end
+
+    def get(key)
+      @hash[key]
+    end
+
+    def set(key, value)
+      @hash[key] = value
     end
   end
 end

@@ -79,6 +79,16 @@ class RateLimiterTest < Minitest::Unit::TestCase
     assert_nil last_response.headers["X-RateLimit-Limit"]
   end
 
+  def test_custom_store
+    store = mock
+    @app = RateLimiter::Middleware.new(empty_app, store: store )
+
+    store.expects(:get).returns(nil)
+    store.expects(:set)
+
+    get '/', {}, "REMOTE_ADDR" => "10.0.0.1"
+  end
+
   def at_time(time, &block)
     Timecop.travel(Time.parse(time), &block)
   end
