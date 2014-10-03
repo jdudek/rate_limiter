@@ -10,6 +10,7 @@ module RateLimiter
       @options[:block] = block || DEFAULT_BLOCK
       @options[:store] ||= HashStore.new
       @options[:limit] ||= 60
+      @options[:reset_in] ||= 3600
     end
 
     def call(env)
@@ -79,7 +80,7 @@ module RateLimiter
 
     def reset_limit
       self.remaining_limit = total_limit
-      self.expires_at = Time.now + 3600
+      self.expires_at = Time.now + options[:reset_in]
     end
 
     def data_from_store
