@@ -79,9 +79,9 @@ module RateLimiter
     def call_app_with_limit
       status, headers, body = app.call(env)
       self.remaining_limit -= 1
-      headers["X-RateLimit-Limit"] = total_limit
-      headers["X-RateLimit-Remaining"] = remaining_limit
-      headers["X-RateLimit-Reset"] = expires_at.to_i
+      headers["X-RateLimit-Limit"] = total_limit.to_s
+      headers["X-RateLimit-Remaining"] = remaining_limit.to_s
+      headers["X-RateLimit-Reset"] = expires_at.to_i.to_s
       [status, headers, body]
     ensure
       store_data
