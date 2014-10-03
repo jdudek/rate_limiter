@@ -24,12 +24,12 @@ class RateLimiterTest < Minitest::Unit::TestCase
     assert_equal 58, last_response.headers["X-RateLimit-Limit"]
   end
 
-  def test_returns_403_when_limit_exceeded
+  def test_returns_429_when_limit_exceeded
     60.times { get '/' }
     assert_equal 0, last_response.headers["X-RateLimit-Limit"]
 
     get '/'
-    assert last_response.forbidden?
+    assert_equal 429, last_response.status
   end
 
   def test_resets_rate_limit_each_full_hour

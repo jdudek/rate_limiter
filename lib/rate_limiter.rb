@@ -27,7 +27,7 @@ module RateLimiter
         headers["X-RateLimit-Limit"] = limit
         [status, headers, body]
       else
-        [403, {}, ""]
+        [429, {}, ""]
       end
     ensure
       store[client_key(env)] = [limit, reset_at]
