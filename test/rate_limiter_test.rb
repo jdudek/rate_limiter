@@ -8,7 +8,11 @@ class RateLimiterTest < RateLimiterTestCase
   end
 
   def app
-    @app ||= RateLimiter::Middleware.new(empty_app)
+    @app ||= build_app
+  end
+
+  def build_app(options = {}, &block)
+    RateLimiter::Middleware.new(empty_app, options, &block)
   end
 
   def test_adds_rate_limit_headers
@@ -73,7 +77,7 @@ class RateLimiterTest < RateLimiterTestCase
   end
 
   def test_no_rate_limit_when_block_returns_nil
-    @app = RateLimiter::Middleware.new(empty_app) { |env| nil }
+    @app = build_app { |env| nil }
 
     get '/', { "api_token" => "abc123" }
     assert_nil last_response.headers["X-RateLimit-Remaining"]
@@ -81,7 +85,7 @@ class RateLimiterTest < RateLimiterTestCase
 
   def test_custom_store
     store = mock
-    @app = RateLimiter::Middleware.new(empty_app, store: store )
+    @app = build_app(store: store)
 
     store.expects(:get).returns(nil)
     store.expects(:set)
