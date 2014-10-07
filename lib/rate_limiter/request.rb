@@ -73,7 +73,7 @@ module RateLimiter
     end
 
     def response_for_limit_exceeded
-      [429, {}, ""]
+      [429, {}, [""]]
     end
 
     def call_app_with_limit
