@@ -12,7 +12,11 @@ class RateLimiterTest < RateLimiterTestCase
   end
 
   def build_app(options = {}, &block)
-    Rack::Lint.new(RateLimiter::Middleware.new(empty_app, options, &block))
+    Rack::Builder.app do
+      use Rack::Lint
+      use RateLimiter::Middleware, options, &block
+      run lambda { |env| [200, {}, ["OK"]] }
+    end
   end
 
   def test_adds_rate_limit_headers
