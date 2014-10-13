@@ -7,17 +7,14 @@ module RateLimiter
     end
 
     def perform
-      if apply_rate_limit?
-        if new_client? || expired?
-          reset_limit
-        end
-        if exceeded?
-          response_for_limit_exceeded
-        else
-          call_app_with_limit
-        end
+      return call_app unless apply_rate_limit?
+
+      reset_limit if new_client? || expired?
+
+      if exceeded?
+        response_for_limit_exceeded
       else
-        call_app
+        call_app_with_limit
       end
     end
 
